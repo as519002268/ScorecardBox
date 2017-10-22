@@ -20,6 +20,7 @@ class Univariable(object):
           self.target=target
           self.columns=columns
           self._iv_threshold=0.02
+          self.ignore_columns=ignore_columns
 
           if ignore_columns:
              self.ignore_func(ignore_columns)
@@ -45,7 +46,8 @@ class Univariable(object):
       @property
       def drop_columns(self):
           drop_col=self.uni_table.query('Iv<%s'%(self._iv_threshold))
-          return drop_col
+        
+          return pd.concat([drop_col,self.uni_table[self.uni_table['Iv'].isnull()]])
 
 
       @property
@@ -60,9 +62,10 @@ class Univariable(object):
       def drop(self):
           drop_col=self.drop_columns
           droped=self.data.drop(drop_col.index.values,1)
-          droped[self.target.name]=self.target
-          for i,l in enumerate(self.ignore_columns):
-              droped.insert(i,l,self.recover[l])
+          if self.ignore_columns:
+             droped[self.target.name]=self.target
+             for i,l in enumerate(self.ignore_columns):
+                 droped.insert(i,l,self.recover[l])
           return droped
 
 

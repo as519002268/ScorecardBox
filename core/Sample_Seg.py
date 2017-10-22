@@ -20,13 +20,13 @@ class Sample(object):
        
       def __init__(self,
                     data,
-                    flag,
+                    target,
                     pct_train=0.8,
                     class_weight='balanced',
                     drop_columns=[]):
 
           self.data=data
-          self.flag=flag
+          self.target=target
           self.pct_train=pct_train
           self.class_weight=class_weight
           self.drop_columns=drop_columns
@@ -36,8 +36,8 @@ class Sample(object):
 
       def resample(self):
           df=self.data.copy()
-          df_good=df.query('{}==0'.format(self.flag))
-          df_bad=df.query('{}==1'.format(self.flag))
+          df_good=df.query('{}==0'.format(self.target.name))
+          df_bad=df.query('{}==1'.format(self.target.name))
           ori_weight={0:math.ceil(len(df_good)*1.0/len(df_bad)),1:1.0}
         
           def _down_sample(specific_weight):

@@ -24,9 +24,10 @@ class Models(object):
                    ignore_columns=None,
                    C=0.5,
                    class_weight='balanced'):
-          self.data=data
+          self.data=data.copy()
           self.target=target
           self.C=C
+          self.class_weight=class_weight
           self.lr = LogisticRegression(
                     penalty='l1',class_weight=class_weight,C=C,n_jobs=-1,random_state=1)
 
@@ -54,7 +55,7 @@ class Models(object):
 
       def randlogistic(self,selection_threshold=0.25,sample_fraction=0.75):
           rlr_model = RandomizedLogisticRegression(
-                      C=self.C
+                      C=self.C,
                       selection_threshold=selection_threshold,
                       normalize=False,
                       sample_fraction=sample_fraction)

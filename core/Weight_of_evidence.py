@@ -61,16 +61,17 @@ class Woe(object):
           return self._max_woe
       @max_woe.setter
       def max_woe(self, max_woe):
-          self.woe_iv(self.series,self.target)
           self._max_woe = max_woe
+          self.woe_iv(self.series,self.target)
+
 
       @property
       def min_woe(self):
           return self._min_woe
       @min_woe.setter
       def min_woe(self, min_woe):
-          self.woe_iv(self.series,self.target)
           self._min_woe = min_woe
+          self.woe_iv(self.series,self.target)
 
 
 class Woe_dataframe(object):
@@ -85,10 +86,13 @@ class Woe_dataframe(object):
 
           self.data=data.copy()
           self.target=target
-          self.columns=self.get_columns(columns)
+          self.ignore_columns=ignore_columns
 
           if ignore_columns:
              self.ignore_func(ignore_columns)
+
+          self.columns=self.get_columns(columns)
+
 
       def ignore_func(self,ignore_columns):
           self.recover=self.data[ignore_columns]
@@ -135,9 +139,10 @@ class Woe_dataframe(object):
           transform=self.data[woe_dict.keys()].apply(
                                 lambda x:self.trans_func(woe_dict,x),
                                 axis=0)
-          transform[self.target.name]=self.target
-          for i,l in enumerate(self.ignore_columns):
-              transform.insert(i,l,self.recover[l])
+          if self.ignore_columns:
+             transform[self.target.name]=self.target
+             for i,l in enumerate(self.ignore_columns):
+                 transform.insert(i,l,self.recover[l])
           return transform
           
 

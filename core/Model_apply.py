@@ -17,9 +17,10 @@ __version__ = '0.0.1'
 class Evaluate(object):
 
       def __init__(self,data,target,fitted_model,ignore_columns=None):
-          self.data=data
+          self.data=data.copy()
           self.target=target
           self.fitted_model=fitted_model
+          self.ignore_columns=ignore_columns
 
           if ignore_columns:
              self.ignore_func(ignore_columns)
@@ -39,35 +40,53 @@ class Evaluate(object):
       @property
       def ks(self):
           print 'KS Value:'
-          return Apply_func.ksvalue(self.data,self.target,self.fitted_model)
+          return Apply_func.ksvalue(self.data.values,self.target.values,self.fitted_model)
 
       @property
       def from_p_to_score(self):
-          score_out,detail_out=Apply_func.fromptoscore(self.fitted_model,self.data)
-          score=pd.DataFrame(score_out,columns=['score'])
-          detail=pd.DataFrame(detail_out).drop(0,1)
+          score_out,detail_out=Apply_func.fromptoscore(self.fitted_model,self.data.values)
+          score=pd.DataFrame(score_out,columns=['score'],index=self.data.index)
+          detail=pd.DataFrame(detail_out,index=self.data.index).drop(0,1)
           detail.columns=self.data.columns
           final_df=pd.concat(([score,detail]),axis=1)
-          final_df[self.target.name]=self.target
-          for i,l in enumerate(self.ignore_columns):
-              final_df.insert(i,l,self.recover[l])  
+          if self.ignore_columns:
+             final_df[self.target.name]=self.target
+             for i,l in enumerate(self.ignore_columns):
+                 final_df.insert(i,l,self.recover[l])  
           return final_df
 
 
-class Test_apply(Bin,Woe_dataframe):
+class Test_apply(object):
 
-      def __init__(self,data,target,bin_dictionary,woe_dict,final_columns):
-          self.data=data
+      def __init__(self,data,target,bin_dictionary,woe_dict,final_columns,ignore_columns=None):
+          self.data=data.copy()
+          self.target=target
           self.bin_dictionary=bin_dictionary
           self.woe_dict=woe_dict
           self.final_columns=final_columns
-          super(Test_apply,self).__init__(data,target=None)
+          self.ignore_columns=ignore_columns
+
+          if ignore_columns:
+             self.ignore_func(ignore_columns)
+
+      def ignore_func(self,ignore_columns):
+          self.recover=self.data[ignore_columns]
+          self.data.drop(ignore_columns,1,inplace=True)
+          ignore_columns.remove(self.target.name)
+          self.ignore_columns=ignore_columns
 
 
       def __call__(self):
-          dis_df=self.transform(self.bin_dictionary)
-          woe_test=self.woe_transform(self.woe_dict)
-          return woe_test[self.final_columns]
+          bin_ins=Bin(self.data,target=None)
+          dis_df=bin_ins.transform(self.bin_dictionary)
+          woe_ins=Woe_dataframe(dis_df,target=None)
+          woe_test=woe_ins.woe_transform(self.woe_dict)
+          woe_test=woe_test[self.final_columns]
+          if self.ignore_columns:
+             woe_test[self.target.name]=self.target
+             for i,l in enumerate(self.ignore_columns):
+                 woe_test.insert(i,l,self.recover[l])  
+          return woe_test
 
 
 class Apply_func(object):

@@ -8,6 +8,7 @@
 import pandas as pd 
 import numpy as np 
 from Model import Models
+import matplotlib.pyplot as plt
 
 __version__ = '0.0.1'
 
@@ -19,6 +20,7 @@ class Multiple(object):
           self.target=target
           self.class_weight=class_weight
           self._corr_ratio=0.6
+          self.ignore_columns=ignore_columns
 
           if ignore_columns:
              self.ignore_func(ignore_columns)
@@ -77,10 +79,11 @@ class Multiple(object):
                 drop_colums=group_list_iv.drop(group_list_iv.idxmax()).index.values
                 self.data.drop(drop_colums,1,inplace=True)
                 group_list=self.corr_group
-          ret_data=self.data.copy()      
-          ret_data[self.target.name]=self.target
-          for i,l in enumerate(self.ignore_columns):
-              ret_data.insert(i,l,self.recover[l])
+          ret_data=self.data.copy()
+          if self.ignore_columns:      
+             ret_data[self.target.name]=self.target
+             for i,l in enumerate(self.ignore_columns):
+                 ret_data.insert(i,l,self.recover[l])
           return ret_data
 
       def __sorted(self,model):
@@ -89,7 +92,7 @@ class Multiple(object):
 
       def RFE(self,ins,n_features_to_select):
           rfe_model=ins.rfe(n_features_to_select=n_features_to_select)
-          self.__sorted(rfe_model.ranking_)
+          return self.__sorted(rfe_model.ranking_)
 
 
       def RFECV(self,ins,n_KFold,cv_scoring):
@@ -97,13 +100,13 @@ class Multiple(object):
           plt.xlabel("Number of features selected")
           plt.ylabel("Scoring: %s"%(cv_scoring))
           plt.plot(range(1, len(rfecv_model.grid_scores_) + 1), rfecv_model.grid_scores_)
-          self.__sorted(rfecv_model.ranking_)
+          return self.__sorted(rfecv_model.ranking_)
 
 
       def RL(self,ins,sample_fraction,selection_threshold):
           rlr_model=ins.randlogistic(selection_threshold=selection_threshold,
                                      sample_fraction=sample_fraction)
-          self.__sorted(rlr_model.scores_)
+          return self.__sorted(rlr_model.scores_)
 
 
       def _make_dataframe(self,value,col):
@@ -128,7 +131,7 @@ class Multiple(object):
           return result_table
 
 
-      def multi_reduce(self,result_table)
+      def multi_reduce(self,result_table):
           spl=len(result_table.columns)
           stay_list=[]
           stay_set=set()
@@ -140,8 +143,9 @@ class Multiple(object):
                  stay_set=stay_set & l
               else:
                  stay_set=l
-          ret_data=self.data[list(stay_list)]
-          ret_data[self.target.name]=self.target
-          for i,l in enumerate(self.ignore_columns):
-              ret_data.insert(i,l,self.recover[l])
-          return ret_data,stay_list
+          ret_data=self.data[list(stay_set)]                 
+          if self.ignore_columns:      
+             ret_data[self.target.name]=self.target
+             for i,l in enumerate(self.ignore_columns):
+                 ret_data.insert(i,l,self.recover[l])
+          return ret_data,list(stay_set)

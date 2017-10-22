@@ -26,11 +26,14 @@ class Calculate_bin(object):
               per_pool=numpy.arange(min_bin,(1-min_bin)+bin_diff,bin_diff)
               per_pool=[round(i,3) for i in per_pool]
               best_bin_edges=best_bin_info=None
-              while len(per_pool)>0:
+              print series.name
+              if len(series.value_counts())>1:
+                 while len(per_pool)>0:
                     for i in per_pool:
                         temp_edges=bin_edges[:]
                         temp_edges.insert(1,i)
                         temp_edges.sort()
+                        print temp_edges
                         dis_var,bin_info=pandas.qcut(series,temp_edges,retbins=True,duplicates='drop') 
                         iv=Weight_of_evidence.Woe(dis_var,target).iv
                         if iv>max_iv:
@@ -39,7 +42,7 @@ class Calculate_bin(object):
                            best_bin_info=bin_info
                            best_i=i
 
-                    if not best_bin_edges :
+                    if not best_bin_edges:
                        break
 
                     bin_number=len(best_bin_edges)-1
@@ -78,12 +81,14 @@ class Bin(object):
          self.nor_columns=nor_columns
          self.max_bin_number=max_bin_number
          self.width_num=width_num
+         self.ignore_columns=ignore_columns
 
          if ignore_columns:
             self.recover=self.data[ignore_columns]
             self.data.drop(ignore_columns,1,inplace=True)
             ignore_columns.remove(target.name)
             self.ignore_columns=ignore_columns
+
 
       def bin_dict(self):        
           ppservers = ()
@@ -139,16 +144,17 @@ class Bin(object):
           return name 
 
       def transform(self,_bin_dict):
+          print self.ignore_columns
           dis_df=self.data[_bin_dict.keys()].apply(
-                                lambda x:trans_func(x,_bin_dict[x.name][0]),
+                                lambda x:self.trans_func(x,_bin_dict[x.name][0]),
                                 axis=0)
-
-          dis_df[self.target.name]=self.target
-          for i,l in enumerate(self.ignore_columns):
-              dis_df.insert(i,l,self.recover[l])
+          if self.ignore_columns:
+             dis_df[self.target.name]=self.target
+             for i,l in enumerate(self.ignore_columns):
+                 dis_df.insert(i,l,self.recover[l])
           return dis_df
 
-      def trans_func(self,series,bin)
+      def trans_func(self,series,bin):
           if series.max()>max(bin) or series.min()<min(bin):
              series[series>max(bin)]=max(bin)
              series[series<min(bin)]=min(bin)
