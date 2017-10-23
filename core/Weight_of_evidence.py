@@ -7,9 +7,10 @@ Use pandas calculate woe value and information value
 
 import pandas as pd 
 import numpy as np 
+from Common_tools import Basesteps
 
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 
 class Woe(object):
@@ -46,6 +47,7 @@ class Woe(object):
           _g=pd.concat([series,flag,one],axis=1)
           table=_g.groupby([series.name,flag.name]).sum().unstack()
           table.columns=[0,1]
+          table.fillna(0,inplace=True)
           return table
 
       @property
@@ -64,7 +66,6 @@ class Woe(object):
           self._max_woe = max_woe
           self.woe_iv(self.series,self.target)
 
-
       @property
       def min_woe(self):
           return self._min_woe
@@ -74,44 +75,14 @@ class Woe(object):
           self.woe_iv(self.series,self.target)
 
 
-class Woe_dataframe(object):
+class Woe_dataframe(Basesteps):
        
       def __init__(self,data,
                        target,
                        columns='ALL',
                        ignore_columns=None):
-
-          if not isinstance(data,pd.DataFrame):
-             raise ValueError('''The data isn't pandas DataFrame type,please check it''')
-
-          self.data=data.copy()
-          self.target=target
-          self.ignore_columns=ignore_columns
-
-          if ignore_columns:
-             self.ignore_func(ignore_columns)
-
+          super(Woe_dataframe,self).__init__(data,target,ignore_columns)
           self.columns=self.get_columns(columns)
-
-
-      def ignore_func(self,ignore_columns):
-          self.recover=self.data[ignore_columns]
-          self.data.drop(ignore_columns,1,inplace=True)
-          ignore_columns.remove(self.target.name)
-          self.ignore_columns=ignore_columns
-
-
-      def get_columns(self,column):
-          if column:
-             if column=='ALL':
-                name=self.data.columns
-             else:
-                if not isinstance(column,list):
-                   raise ValueError('column must be a list or tuple') 
-                name=column[:]
-          else:
-              name=None
-          return name 
 
 
       @property
@@ -140,9 +111,7 @@ class Woe_dataframe(object):
                                 lambda x:self.trans_func(woe_dict,x),
                                 axis=0)
           if self.ignore_columns:
-             transform[self.target.name]=self.target
-             for i,l in enumerate(self.ignore_columns):
-                 transform.insert(i,l,self.recover[l])
+             transform=self.recover_func(transform)
           return transform
           
 

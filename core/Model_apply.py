@@ -10,26 +10,20 @@ from sklearn.metrics import roc_auc_score
 from Bin_Transform import Bin
 from Weight_of_evidence import Woe_dataframe
 from sklearn.externals import joblib
+from Common_tools import Basesteps
 
-__version__ = '0.0.1'
+
+__version__ = '0.0.2'
 
 
-class Evaluate(object):
+class Evaluate(Basesteps):
 
-      def __init__(self,data,target,fitted_model,ignore_columns=None):
-          self.data=data.copy()
-          self.target=target
+      def __init__(self,data,
+                        target,
+                        fitted_model,
+                        ignore_columns=None):
+          super(Evaluate,self).__init__(data,target,ignore_columns)
           self.fitted_model=fitted_model
-          self.ignore_columns=ignore_columns
-
-          if ignore_columns:
-             self.ignore_func(ignore_columns)
-
-      def ignore_func(self,ignore_columns):
-          self.recover=self.data[ignore_columns]
-          self.data.drop(ignore_columns,1,inplace=True)
-          ignore_columns.remove(self.target.name)
-          self.ignore_columns=ignore_columns
 
       @property
       def auc(self):
@@ -50,30 +44,24 @@ class Evaluate(object):
           detail.columns=self.data.columns
           final_df=pd.concat(([score,detail]),axis=1)
           if self.ignore_columns:
-             final_df[self.target.name]=self.target
-             for i,l in enumerate(self.ignore_columns):
-                 final_df.insert(i,l,self.recover[l])  
+             final_df=self.recover_func(final_df)
           return final_df
 
 
-class Test_apply(object):
+class Test_apply(Basesteps):
 
-      def __init__(self,data,target,bin_dictionary,woe_dict,final_columns,ignore_columns=None):
-          self.data=data.copy()
-          self.target=target
+      def __init__(self,data,
+                        target,
+                        bin_dictionary,
+                        woe_dict,
+                        final_columns,
+                        ignore_columns=None):
+          super(Test_apply,self).__init__(data,target,ignore_columns)
           self.bin_dictionary=bin_dictionary
           self.woe_dict=woe_dict
           self.final_columns=final_columns
-          self.ignore_columns=ignore_columns
 
-          if ignore_columns:
-             self.ignore_func(ignore_columns)
 
-      def ignore_func(self,ignore_columns):
-          self.recover=self.data[ignore_columns]
-          self.data.drop(ignore_columns,1,inplace=True)
-          ignore_columns.remove(self.target.name)
-          self.ignore_columns=ignore_columns
 
 
       def __call__(self):
@@ -83,9 +71,7 @@ class Test_apply(object):
           woe_test=woe_ins.woe_transform(self.woe_dict)
           woe_test=woe_test[self.final_columns]
           if self.ignore_columns:
-             woe_test[self.target.name]=self.target
-             for i,l in enumerate(self.ignore_columns):
-                 woe_test.insert(i,l,self.recover[l])  
+             woe_test=self.recover_func(woe_test)
           return woe_test
 
 

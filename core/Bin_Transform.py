@@ -11,8 +11,9 @@ import pp
 import pandas 
 import numpy 
 import Weight_of_evidence
+from Common_tools import Basesteps
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 
     
@@ -62,7 +63,7 @@ class Calculate_bin(object):
           bin_edges=numpy.linspace(0,1,len(bin_info))
           return bin_info,bin_edges
         
-class Bin(object):
+class Bin(Basesteps):
        
       def __init__(self,data,
                    target,
@@ -72,22 +73,13 @@ class Bin(object):
                    nor_columns=None,
                    width_num=None,
                    ignore_columns=None,max_bin_number=20):
-
-         self.data=data.copy()
-         self.target=target
+         super(Bin,self).__init__(data,target,ignore_columns) 
          self.min_bin=min_bin
          self.bin_diff=bin_diff
          self.great_columns=great_columns
          self.nor_columns=nor_columns
          self.max_bin_number=max_bin_number
          self.width_num=width_num
-         self.ignore_columns=ignore_columns
-
-         if ignore_columns:
-            self.recover=self.data[ignore_columns]
-            self.data.drop(ignore_columns,1,inplace=True)
-            ignore_columns.remove(target.name)
-            self.ignore_columns=ignore_columns
 
 
       def bin_dict(self):        
@@ -131,27 +123,13 @@ class Bin(object):
           return  _bin_dict
           
 
-      def get_columns(self,column):
-          if column:
-             if column=='ALL':
-                name=self.data.columns
-             else:
-                if not isinstance(column,list):
-                   raise ValueError('column must be a list or tuple') 
-                name=column[:]
-          else:
-              name=None
-          return name 
-
       def transform(self,_bin_dict):
           print self.ignore_columns
           dis_df=self.data[_bin_dict.keys()].apply(
                                 lambda x:self.trans_func(x,_bin_dict[x.name][0]),
                                 axis=0)
           if self.ignore_columns:
-             dis_df[self.target.name]=self.target
-             for i,l in enumerate(self.ignore_columns):
-                 dis_df.insert(i,l,self.recover[l])
+             dis_df=self.recover_func(dis_df)
           return dis_df
 
       def trans_func(self,series,bin):

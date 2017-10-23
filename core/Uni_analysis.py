@@ -8,31 +8,20 @@ Use pandas calculate woe value and information value
 import pandas as pd 
 import numpy as np 
 import Weight_of_evidence as we
+from Common_tools import Basesteps
+
+__version__ = '0.0.2'
 
 
-__version__ = '0.0.1'
+class Univariable(Basesteps):
 
-
-class Univariable(object):
-
-      def __init__(self,data,target,columns='ALL',ignore_columns=None):
-          self.data=data.copy()
-          self.target=target
-          self.columns=columns
+      def __init__(self,data,
+                        target,
+                        ignore_columns=None):
+          super(Univariable,self).__init__(data,target,ignore_columns)
           self._iv_threshold=0.02
-          self.ignore_columns=ignore_columns
-
-          if ignore_columns:
-             self.ignore_func(ignore_columns)
-
-          self.ins=we.Woe_dataframe(self.data,self.target,self.columns)
+          self.ins=we.Woe_dataframe(self.data,self.target,'ALL')
           self.analysis_table()
-
-      def ignore_func(self,ignore_columns):
-          self.recover=self.data[ignore_columns]
-          self.data.drop(ignore_columns,1,inplace=True)
-          ignore_columns.remove(self.target.name)
-          self.ignore_columns=ignore_columns
 
 
       def analysis_table(self):
@@ -46,7 +35,6 @@ class Univariable(object):
       @property
       def drop_columns(self):
           drop_col=self.uni_table.query('Iv<%s'%(self._iv_threshold))
-        
           return pd.concat([drop_col,self.uni_table[self.uni_table['Iv'].isnull()]])
 
 
@@ -63,9 +51,7 @@ class Univariable(object):
           drop_col=self.drop_columns
           droped=self.data.drop(drop_col.index.values,1)
           if self.ignore_columns:
-             droped[self.target.name]=self.target
-             for i,l in enumerate(self.ignore_columns):
-                 droped.insert(i,l,self.recover[l])
+             droped=self.recover_func(droped)
           return droped
 
 

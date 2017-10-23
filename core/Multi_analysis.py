@@ -9,29 +9,21 @@ import pandas as pd
 import numpy as np 
 from Model import Models
 import matplotlib.pyplot as plt
+from Common_tools import Basesteps
 
-__version__ = '0.0.1'
+
+__version__ = '0.0.2'
 
 
-class Multiple(object):
+class Multiple(Basesteps):
 
-      def __init__(self,data,target,ignore_columns=None,class_weight='balanced'):
-          self.data=data.copy()
-          self.target=target
+      def __init__(self,data,
+                       target,
+                       ignore_columns=None,
+                       class_weight='balanced'):
+          super(Multiple,self).__init__(data,target,ignore_columns)
           self.class_weight=class_weight
           self._corr_ratio=0.6
-          self.ignore_columns=ignore_columns
-
-          if ignore_columns:
-             self.ignore_func(ignore_columns)
-
-
-
-      def ignore_func(self,ignore_columns):
-          self.recover=self.data[ignore_columns]
-          self.data.drop(ignore_columns,1,inplace=True)
-          ignore_columns.remove(self.target.name)
-          self.ignore_columns=ignore_columns
 
       @property
       def corrMat(self):
@@ -61,7 +53,6 @@ class Multiple(object):
           return result
 
 
-
       @property
       def corr_ratio(self):
           return  self._corr_ratio
@@ -81,9 +72,7 @@ class Multiple(object):
                 group_list=self.corr_group
           ret_data=self.data.copy()
           if self.ignore_columns:      
-             ret_data[self.target.name]=self.target
-             for i,l in enumerate(self.ignore_columns):
-                 ret_data.insert(i,l,self.recover[l])
+             ret_data=self.recover_func(ret_data)
           return ret_data
 
       def __sorted(self,model):
@@ -115,7 +104,8 @@ class Multiple(object):
 
       def multi_analysis_table(self,n_features_to_select,
                                     n_KFold=3,
-                                    cv_scoring='roc_auc',rl=True,
+                                    cv_scoring='roc_auc',
+                                    rl=True,
                                     sample_fraction=0.25,selection_threshold=0.75):
           ins=Models(self.data,self.target)
           rfe_rank=self._make_dataframe(self.RFE(ins,n_features_to_select),'rfe')
@@ -145,7 +135,5 @@ class Multiple(object):
                  stay_set=l
           ret_data=self.data[list(stay_set)]                 
           if self.ignore_columns:      
-             ret_data[self.target.name]=self.target
-             for i,l in enumerate(self.ignore_columns):
-                 ret_data.insert(i,l,self.recover[l])
+             ret_data=self.recover_func(ret_data)
           return ret_data,list(stay_set)

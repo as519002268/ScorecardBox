@@ -9,6 +9,7 @@ import math
 import pandas as pd 
 import numpy as np 
 from sklearn.model_selection import train_test_split
+from Common_tools import Basesteps
 
 
 __version__ = '0.0.1'
@@ -16,7 +17,7 @@ __version__ = '0.0.1'
 
 
 
-class Sample(object):
+class Sample(Basesteps):
        
       def __init__(self,
                     data,
@@ -24,13 +25,11 @@ class Sample(object):
                     pct_train=0.8,
                     class_weight='balanced',
                     drop_columns=[]):
-
-          self.data=data
-          self.target=target
+          super(Sample,self).__init__(data,target)
           self.pct_train=pct_train
           self.class_weight=class_weight
           self.drop_columns=drop_columns
-          self.check_type(data)
+          self.main()
 
 
 
@@ -68,25 +67,18 @@ class Sample(object):
           return df.drop(self.drop_columns,1)
 
 
-      def __call__(self):
+      def main(self):
           return self.train_test_split(self.drop(self.resample()))
 
-      @staticmethod
-      def check_type(data):
-          if not isinstance(data,pd.DataFrame):
-             raise ValueError('''The data isn't pandas DataFrame type,please check it''') 
 
-
-
-class Segmentation(object):
+class Segmentation(Basesteps):
 
       def __init__(self,data,condition):
-           self.data=data
+           super(Segmentation,self).__init__(data,None)
            self.condition=condition
 
-           Sample.check_type(data)
 
-      
+    
       def  segment(self):
            df=self.data.copy()
            df.columns = df.columns.map(lambda x: self.operator_repalce(x))
