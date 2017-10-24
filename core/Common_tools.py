@@ -21,12 +21,12 @@ class Basesteps(object):
                         ignore_columns=None):
           self.data=data.copy()
           self.target=target
-          self.ignore_columns=ignore_columns[:]
+          self.ignore_columns=ignore_columns
           if not isinstance(self.data,pd.DataFrame):
              raise ValueError('''The data isn't pandas DataFrame type,please check it''')
 
           if ignore_columns:
-             self.ignore_func(self.ignore_columns)
+             self.ignore_func(ignore_columns[:])
 
 
 
@@ -44,7 +44,7 @@ class Basesteps(object):
                  final_df.insert(i,l,self.recover[l])
           return  final_df
 
-          
+
       def get_columns(self,column):
           if column:
              if column=='ALL':

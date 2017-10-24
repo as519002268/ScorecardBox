@@ -29,8 +29,6 @@ class Sample(Basesteps):
           self.pct_train=pct_train
           self.class_weight=class_weight
           self.drop_columns=drop_columns
-          self.main()
-
 
 
       def resample(self):
@@ -67,7 +65,7 @@ class Sample(Basesteps):
           return df.drop(self.drop_columns,1)
 
 
-      def main(self):
+      def __call__(self):
           return self.train_test_split(self.drop(self.resample()))
 
 

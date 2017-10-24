@@ -107,7 +107,7 @@ class Bin(Basesteps):
                                              self.min_bin,self.bin_diff,
                                              self.max_bin_number),
                                              depfuncs=(),
-                                             modules=('Weight_of_evidence','pandas','numpy'))
+                                             modules=('Weight_of_evidence','pandas','numpy','Basesteps'))
           if nor_name is not None:
              for i in nor_name:
                  job_dict[i]=job_server.submit(top_nor_fuc,
