@@ -115,7 +115,7 @@ class Bin(Basesteps):
                                              depfuncs=(),
                                              modules=('pandas','numpy'))
 
-          for col,job in job_dict.items():
+          for col,job in job_dict.iteritems():
               result=job()
               if result[0] is not None:
                  _bin_dict[col]=result
