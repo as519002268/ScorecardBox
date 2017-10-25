@@ -22,7 +22,7 @@ class Calculate_bin(object):
       @staticmethod
       def find_best_bin(series,target,min_bin,bin_diff,max_bin_number):
               _del_all=[]
-              bin_edges=[0,1]
+              bin_edges=[0.05,1]
               max_iv=0
               per_pool=numpy.arange(min_bin,(1-min_bin)+bin_diff,bin_diff)
               per_pool=[round(i,3) for i in per_pool]
@@ -84,7 +84,7 @@ class Bin(Basesteps):
 
       def bin_dict(self):        
           ppservers = ()
-          job_server = pp.Server(ppservers=ppservers)
+          job_server = pp.Server(ncpus=3,ppservers=ppservers)
           print "Starting job with", job_server.get_ncpus(), "workers"
           _bin_dict={}
           job_dict={}
